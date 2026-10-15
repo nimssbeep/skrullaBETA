@@ -55,22 +55,18 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 // ============================================================================
 // 1. SAFE ENVIRONMENT & HYBRID CLOUD / LOCALSTORAGE INITIALIZATION
 // ============================================================================
-const getEnv = (key, fallback = '') => {
-  try {
-    if (typeof import.meta !== 'undefined' && import.meta.env && import.meta.env[key]) {
-      return import.meta.env[key];
-    }
-  } catch (_) {}
-  return fallback;
-};
-
-const ENV_API_KEY = getEnv('VITE_GEMINI_API_KEY', '');
-const ENV_LOGO_URL = getEnv('VITE_CUSTOM_LOGO_URL', '');
-const GEMINI_MODEL = getEnv('VITE_GEMINI_MODEL', 'gemini-1.5-flash');
+// IMPORTANT: Vite statically replaces import.meta.env.VITE_* at build time.
+// Dynamic bracket access like import.meta.env[variable] silently fails in
+// production builds. Always use direct property access.
+const ENV_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || '';
+const ENV_LOGO_URL = import.meta.env?.VITE_CUSTOM_LOGO_URL || '';
+const GEMINI_MODEL = import.meta.env?.VITE_GEMINI_MODEL || 'gemini-1.5-flash';
 const APP_ID =
   typeof __app_id !== 'undefined' && __app_id
     ? __app_id
-    : getEnv('VITE_APP_ID', 'skrulla-study-app');
+    : (import.meta.env?.VITE_APP_ID || 'skrulla-study-app');
+
+console.log('[SKRULLA!] Gemini Model:', GEMINI_MODEL, '| API Key Loaded:', ENV_API_KEY ? `${ENV_API_KEY.slice(0, 6)}...` : '(none)');
 
 let auth = null;
 let db = null;
@@ -80,7 +76,7 @@ try {
   const rawConfig =
     typeof __firebase_config !== 'undefined' && __firebase_config
       ? __firebase_config
-      : getEnv('VITE_FIREBASE_CONFIG', '');
+      : (import.meta.env?.VITE_FIREBASE_CONFIG || '');
 
   if (rawConfig) {
     const parsedConfig = typeof rawConfig === 'string' ? JSON.parse(rawConfig) : rawConfig;
@@ -597,6 +593,10 @@ async function generatePersonaFeedFromAI({
   isLoginPing = false
 }) {
   const effectiveKey = (apiKey || ENV_API_KEY || '').trim();
+  if (!effectiveKey) {
+    throw new Error('No Gemini API key configured. Add your key in Settings (⚙️) or set VITE_GEMINI_API_KEY in .env');
+  }
+  console.log('[SKRULLA!] Calling Gemini API with model:', GEMINI_MODEL, '| Key prefix:', effectiveKey.slice(0, 6) + '...');
   const startTime = performance.now();
 
   const systemInstruction = `You are the AI engine for "SKRULLA!", an addictive educational social media app that converts study material into a high-retention social feed.
@@ -991,7 +991,8 @@ export default function App() {
         );
         setTimeout(() => setStatusBanner(''), 6000);
       } catch (err) {
-        console.warn('[SKRULLA!] Live API Ping Error:', err);
+        console.error('[SKRULLA!] Live API Ping Error:', err);
+        const errMsg = err?.message || String(err);
         setApiPingState({
           status: 'error',
           latencyMs: null,
@@ -1000,11 +1001,10 @@ export default function App() {
             minute: '2-digit'
           }),
           postsGeneratedCount: 0,
-          message:
-            'API Ping requires a valid Gemini API key in Settings (or set VITE_GEMINI_API_KEY in .env).'
+          message: `API Error: ${errMsg.slice(0, 200)}`
         });
         setStatusBanner(
-          '⚠️ Gemini API ping could not complete. Click the Settings (⚙️) icon to enter your Gemini API key or retry.'
+          `⚠️ Gemini API Error: ${errMsg.slice(0, 150)}`
         );
       } finally {
         setIsGenerating(false);
@@ -1228,13 +1228,14 @@ export default function App() {
       );
       setTimeout(() => setStatusBanner(''), 5000);
     } catch (err) {
+      const errMsg = err?.message || String(err);
       setApiPingState((prev) => ({
         ...prev,
         status: 'error',
-        message: 'Gemini API request failed. Check API key in Settings.'
+        message: `Upload API Error: ${errMsg.slice(0, 200)}`
       }));
       setStatusBanner(
-        '⚠️ Could not reach Gemini API. Please check your API key in Settings (⚙️) and try again.'
+        `⚠️ Gemini API Error: ${errMsg.slice(0, 150)}`
       );
     } finally {
       setIsGenerating(false);
