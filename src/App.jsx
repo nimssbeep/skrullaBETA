@@ -60,7 +60,24 @@ import { getFirestore, doc, setDoc, onSnapshot } from 'firebase/firestore';
 // production builds. Always use direct property access.
 const ENV_API_KEY = import.meta.env?.VITE_GEMINI_API_KEY || '';
 const ENV_LOGO_URL = import.meta.env?.VITE_CUSTOM_LOGO_URL || '';
-const GEMINI_MODEL = import.meta.env?.VITE_GEMINI_MODEL || 'gemini-1.5-flash';
+
+// Automatically resolve active & supported Gemini models.
+// If legacy or retired models (e.g. 'gemini-1.5-flash', 'gemini-2.5-flash') are configured in .env or Vercel,
+// gracefully normalize to 'gemini-flash-latest' to prevent HTTP 404 Not Found errors.
+const resolveGeminiModel = (rawModel) => {
+  const model = (rawModel || '').trim();
+  if (
+    !model ||
+    model === 'gemini-1.5-flash' ||
+    model === 'gemini-1.5-pro' ||
+    model === 'gemini-2.5-flash' ||
+    model === 'gemini-2.5-pro'
+  ) {
+    return 'gemini-flash-latest';
+  }
+  return model;
+};
+const GEMINI_MODEL = resolveGeminiModel(import.meta.env?.VITE_GEMINI_MODEL);
 const APP_ID =
   typeof __app_id !== 'undefined' && __app_id
     ? __app_id
@@ -567,6 +584,12 @@ async function fetchGeminiWithBackoff(url, payload, maxRetries = 3) {
         body: JSON.stringify(payload)
       });
       if (!response.ok) {
+        // If a model is not found (HTTP 404), seamlessly fallback to gemini-flash-latest
+        if (response.status === 404 && !url.includes('/gemini-flash-latest:')) {
+          console.warn('[SKRULLA!] Specified Gemini model returned 404, auto-falling back to gemini-flash-latest');
+          const fallbackUrl = url.replace(/\/models\/[^:]+:/, '/models/gemini-flash-latest:');
+          return await fetchGeminiWithBackoff(fallbackUrl, payload, maxRetries);
+        }
         if ((response.status === 429 || response.status >= 500) && attempt < maxRetries) {
           await new Promise((r) => setTimeout(r, delay));
           delay *= 2;

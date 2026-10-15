@@ -101,7 +101,7 @@ Open [http://localhost:3000](http://localhost:3000) in your browser.
 | Variable | Required? | Default | Description |
 | :--- | :---: | :---: | :--- |
 | `VITE_GEMINI_API_KEY` | **Recommended** | `""` | Google Gemini API key for live feed generation and persona chat. |
-| `VITE_GEMINI_MODEL` | Optional | `gemini-2.5-flash` | Gemini model variant to utilize (e.g. `gemini-2.5-flash`, `gemini-1.5-flash`). |
+| `VITE_GEMINI_MODEL` | Optional | `gemini-flash-latest` | Gemini model variant to utilize (e.g. `gemini-flash-latest`, `gemini-3.5-flash`). |
 | `VITE_APP_ID` | Optional | `skrulla-study-app` | Namespace key for Firestore collections. |
 | `VITE_CUSTOM_LOGO_URL`| Optional | `""` | Image URL to override the default SVG logo. |
 | `VITE_FIREBASE_CONFIG` | Optional | `""` | JSON string of Firebase project configuration for multi-device cloud sync. |
