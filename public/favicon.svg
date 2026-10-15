@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 100 100">
+  <defs>
+    <linearGradient id="goldGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#FCE694"/>
+      <stop offset="50%" stop-color="#ECC72E"/>
+      <stop offset="100%" stop-color="#C88A23"/>
+    </linearGradient>
+  </defs>
+  <rect width="100" height="100" rx="24" fill="#070709"/>
+  <!-- Mortarboard Cap -->
+  <polygon points="50,18 78,30 50,42 22,30" fill="#ECC72E"/>
+  <path d="M38,37 L38,52 C38,52 44,57 50,57 C56,57 62,52 62,52 L62,37" fill="none" stroke="#ECC72E" stroke-width="3"/>
+  <!-- Book / Scroll Base -->
+  <path d="M26,50 C38,52 46,56 50,64 C54,56 62,52 74,50 L74,80 C62,82 54,86 50,92 C46,86 38,82 26,80 Z" fill="url(#goldGrad)"/>
+  <circle cx="50" cy="40" r="3" fill="#070709"/>
+</svg>
