@@ -66,7 +66,7 @@ const getEnv = (key, fallback = '') => {
 
 const ENV_API_KEY = getEnv('VITE_GEMINI_API_KEY', '');
 const ENV_LOGO_URL = getEnv('VITE_CUSTOM_LOGO_URL', '');
-const GEMINI_MODEL = getEnv('VITE_GEMINI_MODEL', 'gemini-2.5-flash');
+const GEMINI_MODEL = getEnv('VITE_GEMINI_MODEL', 'gemini-1.5-flash');
 const APP_ID =
   typeof __app_id !== 'undefined' && __app_id
     ? __app_id
